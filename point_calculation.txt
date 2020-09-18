@@ -1,0 +1,174 @@
+	org 0000H
+	ajmp _SET		;;initial
+	org 0013H
+	ajmp _mode		;;mode change
+	org 0100H
+_SET:
+	mov TCON, #05H		;;enable int1
+	mov IE, #85H
+	mov R0, #0		;;use for delay 
+	mov R1, #0		;;use for delay 
+	mov R2, #0		;;seven seg
+	mov R3, #01010101B	;;LED
+	mov p0, R3		
+_MAIN:	
+	mov p2,#01011111B	;;seven seg 0
+_LOOP:
+	mov p1, #0FFH		;;polling
+	jnb p1.0, _LOOP0
+	jnb p1.1, _LOOP1
+	jnb p1.2, _LOOP2
+	jnb p1.3, _LOOP3
+	jnb p1.4, _LOOP4
+	jnb p1.5, _LOOP5
+	jnb p1.6, _LOOP6
+	jnb p1.7, _LOOP7
+	ajmp _LOOP
+_LOOP0:				;;trig from 0
+	mov A,R3
+	jnb acc.0,_LOOP
+	acall _point
+	ajmp _LOOP
+_LOOP1:				;;trig from 1
+	mov A,R3
+	jnb acc.1,_LOOP
+	acall _point
+	ajmp _LOOP
+_LOOP2:				;;trig from 2
+	mov A,R3
+	jnb acc.2,_LOOP
+	acall _point
+	ajmp _LOOP
+_LOOP3:				;;trig from 3
+	mov A,R3
+	jnb acc.3,_LOOP
+	acall _point
+	ajmp _LOOP
+_LOOP4:				;;trig from 4
+	mov A,R3
+	jnb acc.4,_LOOP
+	acall _point
+	ajmp _LOOP
+_LOOP5:				;;trig from 5
+	mov A,R3
+	jnb acc.5,_LOOP
+	acall _point
+	ajmp _LOOP
+_LOOP6:				;;trig from 6
+	mov A,R3
+	jnb acc.6,_LOOP
+	acall _point
+	ajmp _LOOP
+_LOOP7:				;;trig from 7
+	mov A,R3
+	jnb acc.6,_LOOP
+	acall _point
+	ajmp _LOOP
+
+
+_DELAY:				;;delay
+_DELAY1:
+	djnz R0, _DELAY1
+	djnz R1, _DELAY
+	ret
+_point:				;;calculation
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _shift
+	inc R2
+	mov A,R2
+	add A,R4
+	mov R2,A
+	dec A
+	jz _one
+	dec A
+	jz _two
+	dec A
+	jz _three
+	dec A
+	jz _four
+	dec A
+	jz _five
+	dec A
+	jz _six
+	dec A
+	jz _seven
+	dec A
+	jz _eight
+	dec A
+	jz _nine
+	dec A
+	jz _zero
+	 
+_zero:				;;output 0
+	mov R2,#0
+	mov p2,#01011111B
+	ret
+_one:				;;output 1
+	mov p2,#01000100B
+	ret
+_two:				;;output 2
+	mov p2,#00111110B
+	ret
+_three:				;;output 3
+	mov p2,#01110110B
+	ret
+_four:				;;output 4
+	mov p2,#01100101B
+	ret
+_five:				;;output 5
+	mov p2,#01110011B
+	ret
+_six:				;;output 6
+	mov p2,#01111011B
+	ret
+_seven:				;;output 7
+	mov p2,#01000110B
+	ret
+_eight:				;;output 8
+	mov p2,#01111111B
+	ret
+_nine:				;;output 9
+	mov p2,#01110111B
+	ret
+_mode:				;;1 or 2 point
+	mov IE, #80H
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	acall _DELAY
+	mov IE, #85H
+	mov R3 ,#00101010B
+	mov A ,R4
+	cpl ACC.0
+	mov R4 ,A	
+	mov p0 ,R3
+	reti
+_shift:				;;LED shift
+	mov A ,R3
+	jb acc.7,_shift1
+	mov A,R3
+	rlc A
+	mov R3,A
+	mov p0,R3	
+	ret
+	_shift1:		
+	setb c
+	mov A,R3
+	rlc A
+	mov R3,A
+	mov p0,R3	
+	ret
+	
+end

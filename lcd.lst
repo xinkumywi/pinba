@@ -1,0 +1,365 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	C:\Users\h94vu\Desktop\3up\8051\lcd.asm
+	Object File:	C:\Users\h94vu\Desktop\3up\8051\lcd.hex
+	List File:	C:\Users\h94vu\Desktop\3up\8051\lcd.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				;###############################################
+    2:				;   DEMO for writing a string on the display
+    3:				;################################################
+    4:
+    5:		N      0000		ORG 0000H
+    6:	  0000	02 01 00		ljmp	MAIN
+    7:
+    8:		N      0100		ORG 0100H
+    9:	  0100			MAIN:
+   10:	  0100	78 00			mov	R0,#0		;second = 0
+   11:	  0102	79 00			mov	R1,#0		;minute = 0
+   12:	  0104	7B 00			mov 	R3,#0
+   13:	  0106	7A 00			mov	R2,#0		;10ms count
+   14:
+   15:
+   16:	  0108	31 9D			acall	INIT_LCD
+   17:
+   18:	  010A	74 00			mov	A,#00H		;print STR_1 on LCD
+   19:	  010C	90 01 E3		mov	DPTR,#STR_1
+   20:	  010F	78 03			mov	R0,#3		;second = 0
+   21:	  0111	79 02			mov	R1,#2		;minute = 0
+   22:	  0113	7B 00			mov 	R3,#0
+   23:	  0115	7A 01			mov	R2,#1		;10ms count
+   24:					;acall	PUTS_LCD
+   25:	  0117			LOOP:
+   26:	  0117	C0 82			push dpl
+   27:	  0119	C0 83			push dph
+   28:	  011B	90 80 00		mov dptr ,#8000H
+   29:	  011E	74 01			mov A ,#1H
+   30:	  0120	F0			movx @dptr,A
+   31:	  0121	31 C9			acall DELAY
+   32:	  0123	D0 83			pop dph
+   33:	  0125	D0 82			pop dpl
+   34:	  0127	B2 92		      	cpl  P1.2
+   35:	  0129	31 D6			acall	DELAY_20
+   36:	  012B	B2 92		        cpl  P1.2
+   37:	  012D	31 D6			acall	DELAY_20
+   38:	  012F	B2 92		        cpl  P1.2
+   39:	  0131	31 D6			acall	DELAY_20
+   40:	  0133	0B		  	inc R3
+   41:	  0134	EB		    	mov	A,R3		;print STR_1 on LCD
+   42:	  0135	C3		    	clr	c
+   43:	  0136	94 10		    	subb	A,#16
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0138	70 02		    	jnz	LOOP_2
+   45:	  013A	7B 00		    	mov R3,#0
+   46:	  013C			    	LOOP_2:
+   47:	  013C	EB		    	mov 	A,R3
+   48:	  013D	90 01 E3		mov	DPTR,#STR_1
+   49:	  0140	31 71			acall	PUTS_LCD
+   50:	  0142	0A			inc R2
+   51:	  0143	EA		    	mov	A,R2		;print STR_1 on LCD
+   52:	  0144	C3		    	clr	c
+   53:	  0145	94 10		    	subb	A,#16
+   54:	  0147	70 02		    	jnz	LOOP_3
+   55:	  0149	7A 00		    	mov R2,#0
+   56:	  014B			    	LOOP_3:
+   57:	  014B	EA		    	mov 	A,R2
+   58:	  014C	90 01 E5		mov	DPTR,#STR_2
+   59:	  014F	31 71			acall	PUTS_LCD
+   60:	  0151	09			inc R1
+   61:	  0152	E9		    	mov	A,R1		;print STR_1 on LCD
+   62:	  0153	C3		    	clr	c
+   63:	  0154	94 10		    	subb	A,#16
+   64:	  0156	70 02		    	jnz	LOOP_4
+   65:	  0158	79 00		    	mov R1,#0
+   66:	  015A			    	LOOP_4:
+   67:	  015A	E9		    	mov 	A,R1
+   68:	  015B	90 01 E7		mov	DPTR,#STR_3
+   69:	  015E	31 71			acall	PUTS_LCD
+   70:	  0160	08			inc R0
+   71:	  0161	E8		    	mov	A,R0		;print STR_1 on LCD
+   72:	  0162	C3		    	clr	c
+   73:	  0163	94 10		    	subb	A,#16
+   74:	  0165	70 02		    	jnz	LOOP_5
+   75:	  0167	78 00		    	mov R0,#0
+   76:	  0169			    	LOOP_5:
+   77:	  0169	E8		    	mov 	A,R0
+   78:	  016A	90 01 E9		mov	DPTR,#STR_4
+   79:	  016D	31 71			acall	PUTS_LCD
+   80:
+   81:	  016F	80 A6		        sjmp LOOP
+   82:				;put a string into LCD module.
+   83:				;
+   84:				;input argument : A is position on screen, DPTR is the pointer of string
+   85:				;used register : R4,R5,R6,R7
+   86:				;
+   87:	  0171			PUTS_LCD:
+   88:	  0171	44 80			orl	A,#80H
+   89:	  0173	7C FF			mov	R4,#0FFH	;0xFF = -1
+   90:	  0175	C0 83			push	DPH
+   91:	  0177	C0 82			push	DPL
+   92:
+   93:	  0179	31 B5		        acall	WAIT_DISP_READY
+   94:	  017B	90 80 00		mov	dptr,#8000H	;Set the position on screen
+   95:	  017E	F0			movx	@dptr,A
+   96:
+   97:	  017F	D0 82			pop	DPL
+   98:	  0181	D0 83			pop	DPH
+   99:	  0183			_PUTS_LCD_I:			;for(R4 = 0 ; _STR_1[R4]!='\0' ; R4++)
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:	  0183	EC			mov	A,R4
+  101:	  0184	93			movc	A, @A+DPTR	;LCM_DR_W = _STR_1[i]
+  102:
+  103:	  0185	60 15			jz	_PUTS_LCD_I_END
+  104:
+  105:	  0187	C0 83			push	DPH
+  106:	  0189	C0 82			push	DPL
+  107:
+  108:
+  109:	  018B	90 80 01		mov	dptr,#8001H	;Display on LCD
+  110:	  018E	F0			movx	@dptr,A
+  111:
+  112:	  018F	D0 82			pop	DPL
+  113:	  0191	D0 83			pop	DPH
+  114:
+  115:	  0193	31 B5		        acall	WAIT_DISP_READY
+  116:
+  117:	  0195	0C			inc	R4
+  118:	  0196	B2 92		              cpl  P1.2
+  119:
+  120:	  0198	31 D6		  	acall	DELAY_20
+  121:
+  122:
+  123:	  019A	21 83			ajmp	_PUTS_LCD_I
+  124:	  019C			_PUTS_LCD_I_END:
+  125:	  019C	22			ret
+  126:	  019D			INIT_LCD:
+  127:	  019D	90 80 00		mov	dptr,#8000H	;LCD Addres Mapping 0x8000
+  128:
+  129:	  01A0	74 38			mov	A,#38H		;Set 8-bit I/O, display in 2 line
+  130:	  01A2	F0			movx	@dptr,A		;Delay for a while
+  131:	  01A3	31 C9			acall	DELAY
+  132:
+  133:	  01A5	74 0E			mov	A,#0EH		;Set display cursor, no flashing
+  134:	  01A7	F0			movx	@dptr,A
+  135:
+  136:	  01A8	31 C9			acall	DELAY
+  137:	  01AA	74 01			mov	A,#01H		;Clear display
+  138:	  01AC	F0			movx	@dptr,A
+  139:
+  140:	  01AD	31 C9			acall	DELAY
+  141:
+  142:	  01AF	74 06		   	mov	A,#06H		;Set move cursor in each write
+  143:	  01B1	F0			movx	@dptr,A
+  144:
+  145:	  01B2	31 C9			acall	DELAY
+  146:
+  147:	  01B4	22			ret
+  148:
+  149:
+  150:
+  151:
+  152:	  01B5			WAIT_DISP_READY:                        ; check the busy bit on display
+  153:	  01B5	C0 83			push dph
+  154:	  01B7	C0 82			push dpl
+  155:	  01B9	C0 E0			push acc
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+ Line  I  Addr  Code            Source
+
+  156:	  01BB			WAIT_DISP_READY_I:
+  157:	  01BB	90 80 02	        mov dptr, #8002h
+  158:	  01BE	E0		        movx A, @dptr
+  159:	  01BF	20 E7 F9	        jb Acc.7, WAIT_DISP_READY_I
+  160:	  01C2	D0 E0		        pop acc
+  161:	  01C4	D0 82			pop dpl
+  162:	  01C6	D0 83			pop dph
+  163:	  01C8	22		        ret
+  164:	  01C9			DELAY:
+  165:	  01C9	7F 01			mov R7,#1		;R7 = Acc
+  166:	  01CB			_DELAY_K:
+  167:	  01CB	7E 64			mov R6,#100		;R6 = 100
+  168:	  01CD			_DELAY_J:
+  169:	  01CD	7D 64			mov R5,#100		;R5 = 100
+  170:	  01CF			_DELAY_I:
+  171:	  01CF	DD FE			djnz R5,_DELAY_I	;decrease R5,If R5!=0 then jump to _DELAY_I
+  172:	  01D1	DE FA			djnz R6,_DELAY_J	;decrease R6,If R6!=0 then jump to _DELAY_J
+  173:	  01D3	DF F6			djnz R7,_DELAY_K	;decrease R7,If R7!=0 then jump to _DELAY_K
+  174:	  01D5	22			ret
+  175:	  01D6			DELAY_20:
+  176:	  01D6	7F 14			mov R7,#20		;R7 = Acc
+  177:	  01D8			_DELAY_L:
+  178:	  01D8	7E 64			mov R6,#100		;R6 = 100
+  179:	  01DA			_DELAY_M:
+  180:	  01DA	7D 64			mov R5,#100		;R5 = 100
+  181:	  01DC			_DELAY_N:
+  182:	  01DC	DD FE			djnz R5,_DELAY_N	;decrease R5,If R5!=0 then jump to _DELAY_I
+  183:	  01DE	DE FA			djnz R6,_DELAY_M	;decrease R6,If R6!=0 then jump to _DELAY_J
+  184:	  01E0	DF F6			djnz R7,_DELAY_L	;decrease R7,If R7!=0 then jump to _DELAY_K
+  185:	  01E2	22			ret
+  186:	  01E3			STR_1:
+  187:	  01E3	38			DB "8"
+  188:	  01E4	00			DB 00H
+  189:	  01E5			STR_2:
+  190:	  01E5	30			DB "0"
+  191:	  01E6	00			DB 00H
+  192:	  01E7			STR_3:
+  193:	  01E7	35			DB "5"
+  194:	  01E8	00			DB 00H
+  195:	  01E9			STR_4:
+  196:	  01E9	31			DB "1"
+  197:	  01EA	00			DB 00H
+  198:				end
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CY				  BIT	      D7
+DELAY				  CODE	    01C9	 164
+DELAY_20			  CODE	    01D6	 175
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INIT_LCD			  CODE	    019D	 126
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+LOOP				  CODE	    0117	  25
+LOOP_2				  CODE	    013C	  46
+LOOP_3				  CODE	    014B	  56
+LOOP_4				  CODE	    015A	  66
+LOOP_5				  CODE	    0169	  76
+MAIN				  CODE	    0100	   9
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PUTS_LCD			  CODE	    0171	  87
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+STR_1				  CODE	    01E3	 186
+STR_2				  CODE	    01E5	 189
+STR_3				  CODE	    01E7	 192
+STR_4				  CODE	    01E9	 195
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WAIT_DISP_READY			  CODE	    01B5	 152
+WAIT_DISP_READY_I		  CODE	    01BB	 156
+WR				  BIT	      B6
+_DELAY_I			  CODE	    01CF	 170
+_DELAY_J			  CODE	    01CD	 168
+_DELAY_K			  CODE	    01CB	 166
+_DELAY_L			  CODE	    01D8	 177
+_DELAY_M			  CODE	    01DA	 179
+_DELAY_N			  CODE	    01DC	 181
+_PUTS_LCD_I			  CODE	    0183	  99
+_PUTS_LCD_I_END			  CODE	    019C	 124
